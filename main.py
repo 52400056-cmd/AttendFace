@@ -1,12 +1,12 @@
 from fastapi import FastAPI, Request, Depends
 from contextlib import asynccontextmanager
 from database.db_connect import db_connect
-from routers import auth
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse, JSONResponse
 from sqlalchemy.orm import Session
 from utils.security import get_current_user
+from routers import auth, courses
 # Khởi tạo instance kết nối
 db = db_connect()
 
@@ -27,6 +27,12 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 app.include_router(auth.router)
+app.include_router(courses.router) 
+
+@app.get("/register")
+async def register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
+
 @app.get("/")
 async def index(request: Request, db: Session = Depends(db.get_session)):
     # 1. Dùng hàm get_current_user để giải mã Token và lấy thông tin từ DB
@@ -46,40 +52,44 @@ async def index(request: Request, db: Session = Depends(db.get_session)):
 async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
-# Mở file main.py và sửa lại hàm get_attendance_list
-
-@app.get("/attendance-list")
-async def get_attendance_list(request: Request, db: Session = Depends(db.get_session)):
-    # 1. Giải mã token để lấy thông tin user
+@app.get("/courses")
+async def list_courses(request: Request, db: Session = Depends(db.get_session)):
     user = get_current_user(request, db)
-    
-    # 2. Bắt buộc phải đăng nhập mới được xem danh sách
-    if not user:
+    if not user or user.role not in ['admin', 'teacher']:
         return RedirectResponse(url="/login", status_code=302)
 
-    # Dữ liệu giả định
-    sample_students = [
-        {"id": "52400056", "name": "Chu Đức Thành Nhân", "status": "Có mặt"},
-        {"id": "52400057", "name": "Nguyễn Văn A", "status": "Vắng"}
-    ]
-    
-    # 3. Truyền thêm biến 'user' vào TemplateResponse
-    return templates.TemplateResponse(
-        "students.html", 
-        {
-            "request": request, 
-            "user": user,          # <--- ĐÂY LÀ DÒNG CHÌA KHÓA ĐỂ FIX LỖI
-            "students": sample_students, 
-            "title": "Danh sách điểm danh"
-        }
-    )
+    # Logic phân quyền:
+    if user.role == 'admin':
+        # Admin thấy toàn bộ lớp học trong hệ thống
+        courses = db.query(Course).all()
+    else:
+        # Giảng viên chỉ thấy lớp do mình phụ trách
+        courses = db.query(Course).filter(Course.teacher_id == user.id).all()
 
-@app.get("/profile")
-async def profile_page(request: Request, db: Session = Depends(db.get_session)):
+    return templates.TemplateResponse("courses.html", {
+        "request": request,
+        "user": user,
+        "courses": courses
+    })
+
+@app.get("/courses/{course_id}")
+async def course_detail(course_id: int, request: Request, db: Session = Depends(db.get_session)):
     user = get_current_user(request, db)
-    if not user:
-        return RedirectResponse(url="/login", status_code=302)
-    return templates.TemplateResponse("profile.html", {"request": request, "user": user})
+    course = db.query(Course).filter(Course.id == course_id).first()
+    
+    if not course:
+        return RedirectResponse(url="/courses")
+    
+    # Kiểm tra quyền truy cập chi tiết lớp
+    if user.role != 'admin' and course.teacher_id != user.id:
+        return RedirectResponse(url="/courses")
+
+    return templates.TemplateResponse("course_detail.html", {
+        "request": request,
+        "user": user,
+        "course": course,
+        "students": course.students # Lấy danh sách SV đã tham gia lớp
+    })
 
 @app.get("/register-face")
 async def register_face_page(request: Request, db: Session = Depends(db.get_session)):
@@ -89,6 +99,18 @@ async def register_face_page(request: Request, db: Session = Depends(db.get_sess
     
     # Trả về template register_face.html
     return templates.TemplateResponse("register_face.html", {
+        "request": request, 
+        "user": user
+    })
+
+@app.get("/add-course")
+async def add_course_page(request: Request, db: Session = Depends(db.get_session)):
+    user = get_current_user(request, db)
+    # Bảo mật: Chỉ cho phép admin hoặc giáo viên vào trang này
+    if not user or user.role not in ['admin', 'teacher']:
+        return RedirectResponse(url="/login", status_code=302)
+        
+    return templates.TemplateResponse("add_course.html", {
         "request": request, 
         "user": user
     })

@@ -1,24 +1,51 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - FaceAttend Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { background: #f4f7f6; height: 100vh; display: flex; align-items: center; }
+        .login-card { border: none; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card login-card p-4">
+                    <div class="text-center mb-4">
+                        <div class="bg-primary text-white d-inline-block p-3 rounded-circle mb-3">
+                            <i class="bi bi-person-bounding-box fs-1"></i>
+                        </div>
+                        <h3 class="fw-bold">XanhPHP</h3>
+                        <p class="text-muted">Đăng nhập để vào hệ thống</p>
+                    </div>
 
-{% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-body">
-                <h3 class="text-center mb-4">Đăng nhập</h3>
-                <form action="/api/login" method="post">
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" name="username" class="form-control" required>
+                    <form action="/api/login" method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">MSSV hoặc Email</label>
+                            <input type="text" name="username" class="form-control py-2" placeholder="Nhập mã sinh viên hoặc email trường" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Mật khẩu</label>
+                            <input type="password" name="password" class="form-control py-2" placeholder="Nhập mật khẩu" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">
+                            Đăng nhập ngay
+                        </button>
+                    </form>
+
+                    <hr class="my-4">
+                    <div class="text-center">
+                        <p class="mb-0 text-muted">Bạn chưa có tài khoản?</p>
+                        <a href="/register" class="text-decoration-none fw-bold">Đăng ký tài khoản mới</a>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Mật khẩu</label>
-                        <input type="password" name="password" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Vào hệ thống</button>
-                </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
+</body>
+</html>

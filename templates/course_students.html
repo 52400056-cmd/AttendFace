@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Sinh viên lớp {{ course.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="text-primary fw-bold">Lớp: {{ course.name }}</h3>
+    <span class="badge bg-info text-dark">Sĩ số: {{ students|length }}</span>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle border">
+        <thead class="table-light">
+            <tr>
+                <th>MSSV</th>
+                <th>Họ và Tên</th>
+                <th>Ảnh đại diện</th>
+                <th>Trạng thái khuôn mặt</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+            <tr>
+                <td class="fw-bold">{{ student.student_code }}</td>
+                <td>{{ student.full_name }}</td>
+                <td>
+                    {% if student.url_pic %}
+                        <img src="/{{ student.url_pic }}" class="rounded-circle" style="width: 45px; height: 45px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white" style="width: 45px; height: 45px;">
+                            <i class="bi bi-person"></i>
+                        </div>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if student.face_embedding %}
+                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Đã có Vector</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i> Chưa đăng ký</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <button class="btn btn-outline-primary btn-sm">Xem hồ sơ</button>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="text-center py-4 text-muted">Lớp học hiện chưa có sinh viên nào.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

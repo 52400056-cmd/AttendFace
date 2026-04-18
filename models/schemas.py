@@ -44,9 +44,12 @@ class Course(Base):
     name = Column(String(150))
     teacher_id = Column(Integer, ForeignKey("users.id"))
     
+    # CÁC TRƯỜNG MỚI THÊM
+    total_sessions = Column(Integer, default=15) # Tổng số buổi (VD: 15 buổi)
+    absence_limit = Column(Integer, default=3)   # Số buổi tối đa được nghỉ (VD: 3)
+    
     teacher = relationship("User", back_populates="managed_courses")
     students = relationship("User", secondary=enrollments, back_populates="courses_enrolled")
-
     sessions = relationship("Session", back_populates="course")
 
 User.managed_courses = relationship("Course", back_populates="teacher")

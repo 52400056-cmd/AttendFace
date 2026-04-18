@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Quản lý lớp học{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold text-primary"><i class="bi bi-journal-bookmark-fill me-2"></i>Danh sách lớp học</h3>
+    {% if user.role in ['admin', 'teacher'] %}
+    <a href="/add-course" class="btn btn-primary rounded-pill shadow-sm">
+        <i class="bi bi-plus-lg me-1"></i> Tạo lớp mới
+    </a>
+    {% endif %}
+</div>
+
+<div class="row g-3">
+    {% for course in courses %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-0 shadow-sm hover-shadow transition">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h5 class="card-title fw-bold text-dark mb-0">{{ course.name }}</h5>
+                    <span class="badge bg-soft-primary text-primary">ID: {{ course.id }}</span>
+                </div>
+                <p class="text-muted small mb-2">
+                    <i class="bi bi-person-badge me-1"></i> Giảng viên: <strong>{{ course.teacher.full_name }}</strong>
+                </p>
+                <div class="d-flex gap-3 text-muted mb-3" style="font-size: 0.85rem;">
+                    <span><i class="bi bi-calendar-event me-1"></i>{{ course.total_sessions }} buổi</span>
+                    <span><i class="bi bi-person-x me-1"></i>Hạn vắng: {{ course.absence_limit }}</span>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0 pb-3 px-3">
+                <a href="/courses/{{ course.id }}" class="btn btn-outline-primary w-100 rounded-pill btn-sm">
+                    Xem chi tiết & Quản lý <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" style="width: 100px; opacity: 0.5;">
+        <p class="mt-3 text-muted">Hiện chưa có lớp học nào được phân công cho bạn.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .hover-shadow:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
+    .transition { transition: all 0.3s ease; }
+    .bg-soft-primary { background-color: #e7f1ff; }
+</style>
+{% endblock %}

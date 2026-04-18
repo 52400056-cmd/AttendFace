@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký - FaceAttend Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f4f7f6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 40px 0;
+        }
+
+        .reg-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card reg-card p-4">
+                    <h3 class="fw-bold text-center text-primary mb-4">Đăng ký Thành viên</h3>
+
+                    <form id="reg-form">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Mã sinh viên</label>
+                                <input type="text" id="student_code" class="form-control" placeholder="VD: 52400056"
+                                    required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Họ và tên</label>
+                                <input type="text" id="full_name" class="form-control" placeholder="Nhập tên đầy đủ"
+                                    required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Email</label>
+                            <input type="email" id="email" class="form-control" placeholder="email@student.tdtu.edu.vn"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Mật khẩu</label>
+                            <input type="password" id="password" class="form-control" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Xác nhận mật khẩu</label>
+                            <input type="password" id="confirm_password" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Xác nhận Đăng ký</button>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <a href="/login" class="text-decoration-none">Quay lại Đăng nhập</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('reg-form').onsubmit = async (e) => {
+            e.preventDefault(); // Ngăn trình duyệt tự động tải lại trang
+
+            // 1. Lấy dữ liệu từ các ô nhập liệu
+            const student_code = document.getElementById("student_code").value;
+            const full_name = document.getElementById("full_name").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const confirm_password = document.getElementById("confirm_password").value;
+
+            // 2. Kiểm tra mật khẩu khớp nhau
+            if (password !== confirm_password) {
+                alert("Mật khẩu xác nhận không khớp. Vui lòng kiểm tra lại!");
+                return;
+            }
+
+            // 3. Gửi yêu cầu đăng ký lên API
+            const response = await fetch("/api/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    student_code: student_code,
+                    full_name: full_name,
+                    email: email,
+                    password: password,
+                    confirm_password: confirm_password
+                })
+            });
+
+            // 4. Xử lý kết quả trả về
+            if (response.ok) {
+                alert("Đăng ký thành công! Hệ thống sẽ chuyển về trang đăng nhập.");
+
+                // Lệnh chuyển hướng về trang login
+                window.location.href = "/login";
+            } else {
+                // Hiển thị lỗi từ backend (ví dụ: Trùng MSSV hoặc Email)
+                const data = await response.json();
+                alert(data.detail || "Có lỗi xảy ra khi đăng ký!");
+            }
+        };
+    </script>
+</body>
+
+</html>

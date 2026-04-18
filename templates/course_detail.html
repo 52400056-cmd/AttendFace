@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/courses">Lớp học</a></li>
+        <li class="breadcrumb-item active">{{ course.name }}</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <h6 class="fw-bold text-primary mb-3">Cài đặt lớp học</h6>
+                <div class="mb-3">
+                    <label class="small fw-bold text-muted">Tên lớp học</label>
+                    <input type="text" id="edit_name" class="form-control" value="{{ course.name }}">
+                </div>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="small fw-bold text-muted">Tổng buổi</label>
+                        <input type="number" id="edit_total" class="form-control" value="{{ course.total_sessions }}">
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="small fw-bold text-muted">Hạn vắng</label>
+                        <input type="number" id="edit_limit" class="form-control" value="{{ course.absence_limit }}">
+                    </div>
+                </div>
+                <button class="btn btn-dark w-100 btn-sm">Cập nhật thông tin</button>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h6 class="fw-bold text-success mb-3">Thêm sinh viên mới</h6>
+                <div class="position-relative">
+                    <div class="input-group mb-2">
+                        <input type="text" id="add_student_code" class="form-control" placeholder="Nhập MSSV"
+                            autocomplete="off">
+                        <button onclick="enrollStudent()" class="btn btn-success"><i class="bi bi-plus"></i></button>
+                    </div>
+                    <ul id="suggestionList" class="list-group position-absolute w-100 shadow-lg"
+                        style="z-index: 1000; display: none; max-height: 250px; overflow-y: auto;">
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white pt-3 pb-0 border-bottom-0">
+                <ul class="nav nav-tabs" id="courseTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold" id="students-tab" data-bs-toggle="tab"
+                            data-bs-target="#students-pane" type="button" role="tab">
+                            <i class="bi bi-people-fill me-1"></i> Sinh viên (${{ students|length }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold" id="sessions-tab" data-bs-toggle="tab"
+                            data-bs-target="#sessions-pane" type="button" role="tab">
+                            <i class="bi bi-calendar-check me-1"></i> Các buổi học
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="tab-content" id="courseTabsContent">
+
+                    <div class="tab-pane fade show active p-3" id="students-pane" role="tabpanel">
+                        <div class="d-flex justify-content-end mb-3">
+                            <input type="text" id="tableSearch" class="form-control form-control-sm w-50"
+                                placeholder="Tìm tên hoặc MSSV trong lớp...">
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" id="studentTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>MSSV</th>
+                                        <th>Họ và Tên</th>
+                                        <th>FaceID</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for student in students %}
+                                    <tr>
+                                        <td class="fw-bold">{{ student.student_code }}</td>
+                                        <td>{{ student.full_name }}</td>
+                                        <td>
+                                            {% if student.face_embedding %}
+                                            <span class="badge bg-success">Đã ĐK</span>
+                                            {% else %}
+                                            <span class="badge bg-light text-dark">Chưa ĐK</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button
+                                                onclick="removeStudent('{{ student.student_code }}', '{{ student.full_name }}')"
+                                                class="btn btn-link text-danger p-0"><i
+                                                    class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade p-3" id="sessions-pane" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0 fw-bold text-secondary">Tiến trình lớp học</h6>
+                            <button class="btn btn-primary btn-sm rounded-pill" data-bs-toggle="modal"
+                                data-bs-target="#createSessionModal">
+                                <i class="bi bi-plus-lg"></i> Tạo buổi học mới
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle border">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Ngày học</th>
+                                        <th>Giờ bắt đầu</th>
+                                        <th>Giờ chốt trễ</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for session in sessions %}
+                                    <tr>
+                                        <td class="fw-bold text-primary">{{ session.date.strftime('%d/%m/%Y') }}</td>
+                                        <td><span class="badge bg-secondary">{{ session.start_time }}</span></td>
+                                        <td><span class="badge bg-warning text-dark">{{ session.late_threshold_time
+                                                }}</span></td>
+                                        <td><span class="badge bg-info">Sắp diễn ra</span></td>
+                                        <td>
+                                            <a href="/sessions/{{ session.id }}/attendance"
+                                                class="btn btn-sm btn-outline-success">Điểm danh <i
+                                                    class="bi bi-camera-video"></i></a>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">Chưa có buổi học nào được
+                                            tạo.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="createSessionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-calendar-plus me-2"></i>Tạo buổi học mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="sessionForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Ngày diễn ra buổi học</label>
+                        <input type="date" id="session_date" class="form-control" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-bold">Giờ bắt đầu</label>
+                            <input type="time" id="session_start" class="form-control" value="07:00" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-bold">Giờ chốt trễ</label>
+                            <input type="time" id="session_late" class="form-control" value="07:15" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">Tạo buổi học</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // --- 1. Lọc bảng danh sách (Local Search) ---
+    document.getElementById('tableSearch').addEventListener('keyup', function () {
+        let filter = this.value.toUpperCase();
+        let rows = document.querySelector("#studentTable tbody").rows;
+        for (let i = 0; i < rows.length; i++) {
+            let firstCol = rows[i].cells[0].textContent.toUpperCase();
+            let secondCol = rows[i].cells[1].textContent.toUpperCase();
+            rows[i].style.display = (firstCol.indexOf(filter) > -1 || secondCol.indexOf(filter) > -1) ? "" : "none";
+        }
+    });
+
+    // --- 2. Thêm Sinh Viên (Ghi đè ô input) ---
+    async function enrollStudent() {
+        const code = document.getElementById('add_student_code').value.trim();
+        if (!code) return;
+
+        const response = await fetch(`/api/courses/{{ course.id }}/enroll`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ student_code: code })
+        });
+        if (response.ok) {
+            location.reload();
+        } else {
+            const data = await response.json();
+            alert(data.detail || data.message);
+        }
+    }
+
+    // --- 3. Xóa Sinh Viên ---
+    async function removeStudent(studentCode, studentName) {
+        // Hỏi xác nhận trước khi xóa
+        if (!confirm(`Bạn có chắc chắn muốn xóa sinh viên ${studentName} (${studentCode}) khỏi lớp này?`)) return;
+
+        const response = await fetch(`/api/courses/{{ course.id }}/students/${studentCode}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert("Có lỗi xảy ra khi xóa sinh viên!");
+        }
+    }
+
+    // --- 4. Gợi ý Autocomplete (Chỉ kích hoạt khi >= 3 ký tự) ---
+    const searchInput = document.getElementById('add_student_code');
+    const suggestionList = document.getElementById('suggestionList');
+
+    searchInput.addEventListener('input', async function () {
+        const query = this.value.trim();
+        if (query.length >= 3) {
+            // Gọi API tìm kiếm
+            const response = await fetch(`/api/users/search?q=${query}`);
+            if (response.ok) {
+                const students = await response.json();
+                suggestionList.innerHTML = '';
+
+                if (students.length > 0) {
+                    students.forEach(s => {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+                        li.style.cursor = 'pointer';
+                        li.innerHTML = `<span><strong>${s.student_code}</strong> - ${s.full_name}</span> <i class="bi bi-box-arrow-in-down-right text-muted"></i>`;
+
+                        // Khi click vào 1 người trong list gợi ý
+                        li.onclick = () => {
+                            searchInput.value = s.student_code; // Điền MSSV vào ô input
+                            suggestionList.style.display = 'none'; // Giấu menu đi
+                            enrollStudent(); // Gọi hàm lưu vào db ngay lập tức
+                        };
+                        suggestionList.appendChild(li);
+                    });
+                    suggestionList.style.display = 'block';
+                } else {
+                    suggestionList.innerHTML = '<li class="list-group-item text-muted">Không tìm thấy sinh viên nào...</li>';
+                    suggestionList.style.display = 'block';
+                }
+            }
+        } else {
+            suggestionList.style.display = 'none';
+        }
+    });
+
+    // Ẩn menu gợi ý khi click ra ngoài vùng tìm kiếm
+    document.addEventListener('click', function (e) {
+        if (e.target !== searchInput && e.target !== suggestionList) {
+            suggestionList.style.display = 'none';
+        }
+    });
+    document.getElementById('sessionForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const date = document.getElementById('session_date').value;
+        const start_time = document.getElementById('session_start').value;
+        const late_threshold_time = document.getElementById('session_late').value;
+
+        const response = await fetch(`/api/courses/{{ course.id }}/sessions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                date: date,
+                start_time: start_time + ":00", // Bổ sung giây để đúng định dạng Time
+                late_threshold_time: late_threshold_time + ":00"
+            })
+        });
+
+        if (response.ok) {
+            // Tải lại trang để hiện buổi học mới trong danh sách
+            location.reload();
+        } else {
+            alert("Có lỗi xảy ra khi tạo buổi học!");
+        }
+    };
+</script>
+{% endblock %}

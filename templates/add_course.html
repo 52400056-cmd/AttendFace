@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-center mb-5">
+        <div id="step-1-indicator" class="px-4 py-2 border-bottom border-primary border-4 fw-bold">1. Thông tin lớp
+        </div>
+        <div id="step-2-indicator" class="px-4 py-2 text-muted fw-bold">2. Thêm sinh viên</div>
+    </div>
+
+    <div id="step-1-container">
+        <div class="card shadow-sm border-0 col-md-8 mx-auto p-4">
+            <h5 class="mb-4 text-primary">Thông tin cơ bản lớp học</h5>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label fw-bold">Tên lớp học</label>
+                    <input type="text" id="c_name" class="form-control" placeholder="VD: Lập trình Python - Nhóm 02">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Tổng số buổi học</label>
+                    <input type="number" id="c_total" class="form-control" value="15">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Số buổi nghỉ tối đa (Cấm thi)</label>
+                    <input type="number" id="c_limit" class="form-control" value="3">
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-bold">Giảng viên phụ trách</label>
+                    <div class="input-group">
+                        <input type="text" id="selected_teacher_name" class="form-control bg-light" readonly
+                            placeholder="Chưa chọn giảng viên">
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal"
+                            data-bs-target="#teacherModal">Chọn...</button>
+                    </div>
+                    <input type="hidden" id="selected_teacher_id">
+                </div>
+            </div>
+            <div class="mt-4 text-end">
+                <button onclick="saveStep1()" class="btn btn-primary px-5 rounded-pill">Tiếp theo <i
+                        class="bi bi-arrow-right ms-2"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="step-2-container" style="display: none;">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card p-3 shadow-sm border-0">
+                    <h6 class="fw-bold mb-3">Tìm sinh viên</h6>
+                    <input type="text" id="studentSearch" class="form-control mb-3"
+                        placeholder="Tìm theo tên hoặc MSSV...">
+                    <div class="overflow-auto" style="height: 400px;">
+                        <table class="table table-sm align-middle">
+                            <tbody id="allStudentsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3 shadow-sm border-0 bg-light">
+                    <h6 class="fw-bold mb-3 text-success">Sinh viên trong lớp (<span id="count_enroll">0</span>)</h6>
+                    <div class="overflow-auto" style="height: 400px;">
+                        <table class="table table-sm table-hover bg-white rounded shadow-sm">
+                            <tbody id="enrolledTable"></tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3 text-end">
+                        <a href="/courses" class="btn btn-success px-4 rounded-pill">Hoàn tất</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="teacherModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Danh sách cán bộ / Giảng viên</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex gap-2 mb-3">
+                    <input type="text" id="teacherSearch" class="form-control"
+                        placeholder="Nhập tên hoặc Email để tìm...">
+                    <select id="roleFilter" class="form-select w-25">
+                        <option value="">Tất cả Role</option>
+                        <option value="admin">Admin</option>
+                        <option value="teacher">Teacher</option>
+                    </select>
+                </div>
+                <div class="table-responsive" style="max-height: 400px;">
+                    <table class="table table-hover border">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Họ tên</th>
+                                <th>Role</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teacherTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentCourseId = null;
+
+    // --- XỬ LÝ MODAL GIẢNG VIÊN ---
+    async function loadTeachers() {
+        const response = await fetch('/api/users/staff');
+        const teachers = await response.json();
+        renderTeachers(teachers);
+    }
+
+    function renderTeachers(list) {
+        const tbody = document.getElementById('teacherTableBody');
+        tbody.innerHTML = '';
+        list.forEach(t => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${t.full_name}</td>
+                    <td><span class="badge bg-info">${t.role}</span></td>
+                    <td><button onclick="selectTeacher(${t.id}, '${t.full_name}')" class="btn btn-sm btn-primary">Chọn</button></td>
+                </tr>`;
+        });
+    }
+
+    function selectTeacher(id, name) {
+        document.getElementById('selected_teacher_id').value = id;
+        document.getElementById('selected_teacher_name').value = name;
+        bootstrap.Modal.getInstance(document.getElementById('teacherModal')).hide();
+    }
+
+    // --- LƯU BƯỚC 1 ---
+    async function saveStep1() {
+        const name = document.getElementById('c_name').value;
+        const teacher_id = document.getElementById('selected_teacher_id').value;
+        if (!name || !teacher_id) return alert("Vui lòng nhập tên lớp và chọn giảng viên!");
+
+        const response = await fetch('/api/courses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name,
+                teacher_id: parseInt(teacher_id),
+                total_sessions: parseInt(document.getElementById('c_total').value),
+                absence_limit: parseInt(document.getElementById('c_limit').value)
+            })
+        });
+        const data = await response.json();
+        currentCourseId = data.course_id;
+
+        // Chuyển bước
+        document.getElementById('step-1-container').style.display = 'none';
+        document.getElementById('step-2-container').style.display = 'block';
+        document.getElementById('step-1-indicator').className = 'px-4 py-2 text-muted fw-bold';
+        document.getElementById('step-2-indicator').className = 'px-4 py-2 border-bottom border-success border-4 fw-bold';
+        loadAllStudents();
+    }
+
+    // --- XỬ LÝ SINH VIÊN (STEP 2) ---
+    async function loadAllStudents() {
+        const response = await fetch('/api/users/students');
+        const students = await response.json();
+        renderStudentPool(students);
+    }
+
+    function renderStudentPool(list) {
+        const tbody = document.getElementById('allStudentsTable');
+        tbody.innerHTML = '';
+        list.forEach(s => {
+            tbody.innerHTML += `
+                <tr>
+                    <td><b>${s.student_code}</b></td>
+                    <td>${s.full_name}</td>
+                    <td class="text-end"><button onclick="addStudentToCourse('${s.student_code}', '${s.full_name}')" class="btn btn-sm btn-outline-success">+</button></td>
+                </tr>`;
+        });
+    }
+
+    async function addStudentToCourse(code, name) {
+        const response = await fetch(`/api/courses/${currentCourseId}/enroll`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ student_code: code })
+        });
+        if (response.ok) {
+            // Tự động điền vào bảng bên phải
+            const enrolledTbody = document.getElementById('enrolledTable');
+            enrolledTbody.innerHTML += `<tr><td>${code}</td><td>${name}</td></tr>`;
+            const count = document.getElementById('count_enroll');
+            count.innerText = parseInt(count.innerText) + 1;
+        }
+    }
+
+    // Khởi tạo Modal
+    document.addEventListener('DOMContentLoaded', loadTeachers);
+</script>
+{% endblock %}
