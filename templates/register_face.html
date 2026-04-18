@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Đăng ký khuôn mặt - FaceAttend{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+        <h4 class="mb-4 text-primary fw-bold">
+            <i class="bi bi-person-bounding-box me-2"></i>Thu thập Avatar sinh viên: {{ user.full_name }}
+        </h4>
+        
+        <div class="position-relative d-inline-block rounded-4 shadow-lg overflow-hidden" style="width: 640px; height: 480px; background: #1a1a1a; border: 3px solid #dee2e6;" id="camera-container">
+            <video id="webcam" autoplay playsinline style="width: 640px; height: 480px; object-fit: cover; transform: scaleX(-1);"></video>
+            <canvas id="output_canvas" style="position: absolute; top: 0; left: 0; width: 640px; height: 480px; transform: scaleX(-1);"></canvas>
+            
+            <div id="countdown" class="position-absolute top-50 start-50 translate-middle display-1 fw-bold text-white" style="display: none; text-shadow: 0px 0px 20px rgba(0, 255, 0, 0.8); z-index: 20;">3</div>
+            
+            <div class="position-absolute bottom-0 w-100 pb-4" style="z-index: 10;">
+                <div id="feedback" class="d-inline-block px-4 py-2 rounded-pill text-white fw-bold shadow" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); font-size: 1.1rem; transition: all 0.3s;">
+                    Nhấn "Bắt đầu" để mở Camera
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button id="start-btn" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm">
+                <i class="bi bi-camera-video-fill me-2"></i>Bắt đầu Camera
+            </button>
+            <button id="capture-btn" class="btn btn-success btn-lg px-5 rounded-pill shadow-sm d-none" disabled>
+                <i class="bi bi-shield-lock me-2"></i>Đang phân tích...
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js"></script>
+
+<script>
+    const video = document.getElementById('webcam');
+    const canvas = document.getElementById('output_canvas');
+    const ctx = canvas.getContext('2d');
+    const feedback = document.getElementById('feedback');
+    const startBtn = document.getElementById('start-btn');
+    const captureBtn = document.getElementById('capture-btn');
+    const countdownEl = document.getElementById('countdown');
+    const container = document.getElementById('camera-container');
+
+    let holdTimer = null;
+    let secondsLeft = 3;
+    let isCapturing = false;
+    let lastValidBbox = null; // Lưu lại tọa độ khuôn mặt cuối cùng để crop
+
+    // Hàm vẽ 4 góc của Bounding Box (Gọn gàng và hiện đại hơn)
+    function drawCorners(ctx, x, y, w, h, color) {
+        const len = 30; // Chiều dài của mỗi góc
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        // Góc trên trái
+        ctx.moveTo(x, y + len); ctx.lineTo(x, y); ctx.lineTo(x + len, y);
+        // Góc trên phải
+        ctx.moveTo(x + w - len, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + len);
+        // Góc dưới trái
+        ctx.moveTo(x, y + h - len); ctx.lineTo(x, y + h); ctx.lineTo(x + len, y + h);
+        // Góc dưới phải
+        ctx.moveTo(x + w - len, y + h); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w, y + h - len);
+        ctx.stroke();
+    }
+
+    // Cập nhật giao diện Feedback
+    function updateFeedback(msg, bgColor, borderColor) {
+        feedback.innerHTML = msg;
+        feedback.style.background = bgColor;
+        container.style.borderColor = borderColor;
+    }
+
+    function onResults(results) {
+        // Xóa frame cũ
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        if (results.detections.length > 0) {
+            const detection = results.detections[0];
+            const bbox = detection.boundingBox;
+            const landmarks = detection.landmarks;
+            
+            // Tính toán tọa độ vẽ
+            const x = bbox.xCenter * canvas.width - (bbox.width * canvas.width) / 2;
+            const y = bbox.yCenter * canvas.height - (bbox.height * canvas.height) / 2;
+            const w = bbox.width * canvas.width;
+            const h = bbox.height * canvas.height;
+
+            // Kiểm tra độ nghiêng đầu (Dựa vào y của mắt trái và mắt phải)
+            // landmarks[0] là mắt phải, landmarks[1] là mắt trái
+            const eyeTilt = Math.abs(landmarks[0].y - landmarks[1].y);
+            const isHeadTilted = eyeTilt > 0.04; 
+
+            let isFaceValid = false;
+            let color = '#ffc107'; // Vàng (Cảnh báo)
+
+            if (bbox.width < 0.28) {
+                updateFeedback("⚠️ Vui lòng tiến lại gần camera", "rgba(255, 193, 7, 0.8)", "#ffc107");
+            } else if (bbox.width > 0.6) {
+                updateFeedback("⚠️ Vui lòng lùi ra xa một chút", "rgba(255, 193, 7, 0.8)", "#ffc107");
+            } else if (bbox.xCenter < 0.35 || bbox.xCenter > 0.65 || bbox.yCenter < 0.35 || bbox.yCenter > 0.65) {
+                updateFeedback("⚠️ Đưa khuôn mặt vào giữa khung hình", "rgba(255, 193, 7, 0.8)", "#ffc107");
+            } else if (isHeadTilted) {
+                updateFeedback("⚠️ Vui lòng giữ đầu thẳng, không nghiêng", "rgba(220, 53, 69, 0.8)", "#dc3545");
+                color = '#dc3545'; // Đỏ
+            } else {
+                // Thỏa mãn mọi điều kiện
+                isFaceValid = true;
+                color = '#198754'; // Xanh lá
+                lastValidBbox = bbox; // Cập nhật vùng crop
+            }
+
+            // Vẽ khung
+            drawCorners(ctx, x, y, w, h, color);
+
+            // Xử lý đếm ngược
+            if (isFaceValid) {
+                if (!holdTimer && !isCapturing) {
+                    startCountdown();
+                }
+                updateFeedback(`✅ Hợp lệ! Giữ yên... ${secondsLeft}`, "rgba(25, 135, 84, 0.9)", "#198754");
+            } else {
+                resetCountdown();
+            }
+        } else {
+            resetCountdown();
+            updateFeedback("🔍 Không tìm thấy khuôn mặt", "rgba(0, 0, 0, 0.7)", "#dee2e6");
+        }
+    }
+
+    function startCountdown() {
+        countdownEl.style.display = 'block';
+        countdownEl.innerText = secondsLeft;
+        holdTimer = setInterval(() => {
+            secondsLeft--;
+            if (secondsLeft > 0) {
+                countdownEl.innerText = secondsLeft;
+                updateFeedback(`✅ Hợp lệ! Giữ yên... ${secondsLeft}`, "rgba(25, 135, 84, 0.9)", "#198754");
+            } else if (secondsLeft === 0) {
+                clearInterval(holdTimer);
+                captureAndCropImage();
+            }
+        }, 1000);
+    }
+
+    function resetCountdown() {
+        if (holdTimer) clearInterval(holdTimer);
+        holdTimer = null;
+        secondsLeft = 3;
+        countdownEl.style.display = 'none';
+    }
+
+    // THUẬT TOÁN AUTO CROP ẢNH VUÔNG
+    async function captureAndCropImage() {
+        isCapturing = true;
+        updateFeedback("📸 Đang lưu ảnh...", "rgba(13, 110, 253, 0.9)", "#0d6efd");
+        countdownEl.style.display = 'none';
+        
+        // Tạo canvas tạm để crop ảnh
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = 400; // Avatar vuông 400x400
+        tempCanvas.height = 400;
+        const tCtx = tempCanvas.getContext('2d');
+
+        // Tính toán vùng cần cắt (Mở rộng thêm 60% so với khuôn mặt để lấy được tóc/cổ)
+        const videoW = video.videoWidth;
+        const videoH = video.videoHeight;
+        const faceW = lastValidBbox.width * videoW;
+        const faceH = lastValidBbox.height * videoH;
+        
+        // Kích thước vùng cắt là hình vuông
+        const cropSize = Math.max(faceW, faceH) * 1.6; 
+        
+        // Tọa độ bắt đầu cắt (Lưu ý: Camera đang lật ngang - transform: scaleX(-1))
+        // Do video bị lật bằng CSS, dữ liệu gốc không bị lật. Ta cần đảo xCenter lại.
+        const realXCenter = 1.0 - lastValidBbox.xCenter; 
+        
+        let cropX = (realXCenter * videoW) - (cropSize / 2);
+        let cropY = (lastValidBbox.yCenter * videoH) - (cropSize / 2) - (faceH * 0.1); // Dịch lên một chút để lấy tóc
+
+        // Rút trích hình ảnh và vẽ lại dưới dạng 400x400
+        tCtx.drawImage(video, cropX, cropY, cropSize, cropSize, 0, 0, 400, 400);
+        const finalBase64Image = tempCanvas.toDataURL('image/jpeg', 0.9);
+
+        // Gửi lên Server
+        const response = await fetch('/api/save-face', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({image: finalBase64Image})
+        });
+
+        if (response.ok) {
+            updateFeedback("🎉 Đăng ký thành công!", "rgba(25, 135, 84, 0.9)", "#198754");
+            setTimeout(() => {
+                window.location.href = "/profile";
+            }, 1000);
+        } else {
+            alert("Có lỗi xảy ra khi lưu ảnh!");
+            isCapturing = false;
+        }
+    }
+
+    startBtn.onclick = () => {
+        startBtn.classList.add('d-none');
+        captureBtn.classList.remove('d-none');
+        updateFeedback("Đang khởi động Camera...", "rgba(0,0,0,0.6)", "#dee2e6");
+        
+        // Đồng bộ kích thước canvas
+        canvas.width = 640; canvas.height = 480;
+
+        const camera = new Camera(video, {
+            onFrame: async () => { await faceDetection.send({image: video}); },
+            width: 640, height: 480
+        });
+        camera.start();
+    };
+
+    const faceDetection = new FaceDetection({locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${f}`});
+    faceDetection.setOptions({ model: 'short', minDetectionConfidence: 0.7 });
+    faceDetection.onResults(onResults);
+</script>
+{% endblock %}

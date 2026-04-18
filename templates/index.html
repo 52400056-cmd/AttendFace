@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Bảng điều khiển - Hệ thống FaceAttend{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <h2 class="text-primary">Chào mừng quay trở lại!</h2>
+        <p class="text-muted">Hệ thống điểm danh bằng khuôn mặt - Dự án nghiên cứu học thuật.</p>
+    </div>
+</div>
+
+<div class="row text-center">
+    <div class="col-md-4 mb-3">
+        <div class="card border-primary shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-primary">Lớp học</h5>
+                <h2 class="display-4">05</h2>
+                <p class="card-text">Đang hoạt động</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card border-success shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-success">Sinh viên</h5>
+                <h2 class="display-4">120</h2>
+                <p class="card-text">Đã đăng ký khuôn mặt</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card border-info shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-info">Buổi học</h5>
+                <h2 class="display-4">08</h2>
+                <p class="card-text">Diễn ra hôm nay</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="alert alert-info border-0 shadow-sm">
+            <strong>Gợi ý:</strong> Bạn có thể bắt đầu điểm danh ngay bằng cách chọn lớp học trong danh sách quản lý.
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Hồ sơ cá nhân - {{ user.full_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    {% if user.url_pic %}
+                    <img src="/{{ user.url_pic }}" class="rounded-circle"
+                        style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                    <img src="https://ui-avatars.com/api/?name={{ user.full_name }}&background=random"
+                        class="rounded-circle img-thumbnail" width="150">
+                    {% endif %}
+                </div>
+                <h4>{{ user.full_name }}</h4>
+                <p class="text-muted">{{ user.role | upper }}</p>
+                <hr>
+                <div class="text-start">
+                    <p><strong>Mã:</strong> {{ user.student_code or "N/A" }}</p>
+                    <p><strong>Ngày sinh:</strong> {{ user.date_of_birth or "Chưa cập nhật" }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                </div>
+                <button class="btn btn-primary btn-sm w-100">Chỉnh sửa thông tin</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    {% if user.role == 'student' %} Lớp học đang tham gia {% else %} Lớp học đang quản lý {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% set courses = user.courses_enrolled if user.role == 'student' else user.managed_courses %}
+                    {% for course in courses %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ course.name }}
+                        <span class="badge bg-primary rounded-pill">Chi tiết</span>
+                    </li>
+                    {% else %}
+                    <p class="text-muted text-center py-3">Chưa có dữ liệu lớp học.</p>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        {% if user.role == 'student' %}
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Lịch sử điểm danh gần đây</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th>Môn học</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in user.attendance_records[:5] %}
+                        <tr>
+                            <td>{{ record.check_in_time.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ record.session.course.name }}</td>
+                            <td>{{ record.status }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
