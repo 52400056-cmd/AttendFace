@@ -55,21 +55,21 @@ def seed_staff():
     db_instance = db_connect()
     db: Session = next(db_instance.get_session())
     
-    hashed_pw = get_password_hash("123456")
+
     
     staff_data = [
         User(
             full_name="Quản Trị Viên",
             email="admin@tdtu.edu.vn",
             student_code="admin", # Dùng làm tài khoản đăng nhập
-            hashed_password=hashed_pw,
+            hashed_password=get_password_hash("admin"),
             role="admin"
         ),
         User(
             full_name="Giảng viên Khoa CNTT",
             email="teacher@tdtu.edu.vn",
             student_code="GV001", # Dùng làm tài khoản đăng nhập
-            hashed_password=hashed_pw,
+            hashed_password=get_password_hash("GV001"),
             role="teacher"
         )
     ]

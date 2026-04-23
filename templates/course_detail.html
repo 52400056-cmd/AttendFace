@@ -1,66 +1,63 @@
 {% extends "base.html" %}
 {% block content %}
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/courses">Lớp học</a></li>
-        <li class="breadcrumb-item active">{{ course.name }}</li>
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb bg-white p-3 rounded-3 shadow-sm">
+        <li class="breadcrumb-item"><a href="/courses" class="text-decoration-none fw-bold"><i class="bi bi-journal-bookmark-fill me-1"></i>Lớp học</a></li>
+        <li class="breadcrumb-item active fw-bold text-primary">{{ course.name }}</li>
     </ol>
 </nav>
 
-<div class="row">
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0 mb-4">
+<div class="row g-4">
+    <div class="col-lg-4 col-md-5">
+        <div class="card shadow-sm border-0 rounded-4 mb-4">
+            <div class="card-header bg-white border-0 pt-4 pb-0">
+                <h6 class="fw-bold text-primary mb-0"><i class="bi bi-sliders me-2"></i>Cài đặt lớp học</h6>
+            </div>
             <div class="card-body">
-                <h6 class="fw-bold text-primary mb-3">Cài đặt lớp học</h6>
                 <div class="mb-3">
-                    <label class="small fw-bold text-muted">Tên lớp học</label>
-                    <input type="text" id="edit_name" class="form-control" value="{{ course.name }}">
+                    <label class="form-label small fw-bold text-muted">Tên lớp học</label>
+                    <input type="text" id="edit_name" class="form-control form-control-sm" value="{{ course.name }}">
                 </div>
-                <div class="row">
+                <div class="row g-2">
                     <div class="col-6 mb-3">
-                        <label class="small fw-bold text-muted">Tổng buổi</label>
-                        <input type="number" id="edit_total" class="form-control" value="{{ course.total_sessions }}">
+                        <label class="form-label small fw-bold text-muted">Tổng buổi</label>
+                        <input type="number" id="edit_total" class="form-control form-control-sm" value="{{ course.total_sessions }}">
                     </div>
                     <div class="col-6 mb-3">
-                        <label class="small fw-bold text-muted">Hạn vắng</label>
-                        <input type="number" id="edit_limit" class="form-control" value="{{ course.absence_limit }}">
+                        <label class="form-label small fw-bold text-muted">Hạn vắng</label>
+                        <input type="number" id="edit_limit" class="form-control form-control-sm" value="{{ course.absence_limit }}">
                     </div>
                 </div>
-                <button class="btn btn-dark w-100 btn-sm">Cập nhật thông tin</button>
+                <button class="btn btn-dark w-100 btn-sm rounded-pill fw-bold shadow-sm">Cập nhật thông tin</button>
             </div>
         </div>
 
-        <div class="card shadow-sm border-0">
+        <div class="card shadow-sm border-0 rounded-4 bg-success bg-opacity-10">
             <div class="card-body">
-                <h6 class="fw-bold text-success mb-3">Thêm sinh viên mới</h6>
+                <h6 class="fw-bold text-success mb-3"><i class="bi bi-person-plus-fill me-2"></i>Thêm sinh viên mới</h6>
                 <div class="position-relative">
-                    <div class="input-group mb-2">
-                        <input type="text" id="add_student_code" class="form-control" placeholder="Nhập MSSV"
-                            autocomplete="off">
-                        <button onclick="enrollStudent()" class="btn btn-success"><i class="bi bi-plus"></i></button>
+                    <div class="input-group mb-2 shadow-sm rounded-3">
+                        <input type="text" id="add_student_code" class="form-control border-success border-opacity-50" placeholder="Nhập MSSV (>=3 số)..." autocomplete="off">
+                        <button onclick="enrollStudent()" class="btn btn-success px-3"><i class="bi bi-plus-lg"></i></button>
                     </div>
-                    <ul id="suggestionList" class="list-group position-absolute w-100 shadow-lg"
-                        style="z-index: 1000; display: none; max-height: 250px; overflow-y: auto;">
-                    </ul>
+                    <ul id="suggestionList" class="list-group position-absolute w-100 shadow-lg border-0 rounded-3" style="z-index: 1000; display: none; max-height: 250px; overflow-y: auto;"></ul>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-8">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white pt-3 pb-0 border-bottom-0">
+    <div class="col-lg-8 col-md-7">
+        <div class="card shadow-sm border-0 rounded-4 h-100">
+            <div class="card-header bg-white pt-3 pb-0 border-bottom-0 rounded-top-4">
                 <ul class="nav nav-tabs" id="courseTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active fw-bold" id="students-tab" data-bs-toggle="tab"
-                            data-bs-target="#students-pane" type="button" role="tab">
-                            <i class="bi bi-people-fill me-1"></i> Sinh viên (${{ students|length }})
+                        <button class="nav-link active fw-bold text-dark px-4" id="students-tab" data-bs-toggle="tab" data-bs-target="#students-pane" type="button" role="tab">
+                            <i class="bi bi-people-fill me-1 text-primary"></i> Sinh viên ({{ students|length }})
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-bold" id="sessions-tab" data-bs-toggle="tab"
-                            data-bs-target="#sessions-pane" type="button" role="tab">
-                            <i class="bi bi-calendar-check me-1"></i> Các buổi học
+                        <button class="nav-link fw-bold text-dark px-4" id="sessions-tab" data-bs-toggle="tab" data-bs-target="#sessions-pane" type="button" role="tab">
+                            <i class="bi bi-calendar-check me-1 text-success"></i> Các buổi học
                         </button>
                     </li>
                 </ul>
@@ -68,39 +65,37 @@
 
             <div class="card-body p-0">
                 <div class="tab-content" id="courseTabsContent">
-
-                    <div class="tab-pane fade show active p-3" id="students-pane" role="tabpanel">
+                    <div class="tab-pane fade show active p-4" id="students-pane" role="tabpanel">
                         <div class="d-flex justify-content-end mb-3">
-                            <input type="text" id="tableSearch" class="form-control form-control-sm w-50"
-                                placeholder="Tìm tên hoặc MSSV trong lớp...">
+                            <div class="input-group w-50 shadow-sm rounded-pill overflow-hidden">
+                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                                <input type="text" id="tableSearch" class="form-control form-control-sm border-start-0" placeholder="Tìm tên hoặc MSSV trong lớp...">
+                            </div>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle mb-0" id="studentTable">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>MSSV</th>
+                                        <th class="ps-3">MSSV</th>
                                         <th>Họ và Tên</th>
                                         <th>FaceID</th>
-                                        <th>Thao tác</th>
+                                        <th class="text-end pe-3">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for student in students %}
                                     <tr>
-                                        <td class="fw-bold">{{ student.student_code }}</td>
+                                        <td class="fw-bold ps-3">{{ student.student_code }}</td>
                                         <td>{{ student.full_name }}</td>
                                         <td>
                                             {% if student.face_embedding %}
-                                            <span class="badge bg-success">Đã ĐK</span>
+                                            <span class="badge bg-success rounded-pill px-3"><i class="bi bi-check-circle me-1"></i>Đã ĐK</span>
                                             {% else %}
-                                            <span class="badge bg-light text-dark">Chưa ĐK</span>
+                                            <span class="badge bg-light text-dark rounded-pill px-3 border"><i class="bi bi-dash-circle me-1"></i>Chưa ĐK</span>
                                             {% endif %}
                                         </td>
-                                        <td>
-                                            <button
-                                                onclick="removeStudent('{{ student.student_code }}', '{{ student.full_name }}')"
-                                                class="btn btn-link text-danger p-0"><i
-                                                    class="bi bi-trash"></i></button>
+                                        <td class="text-end pe-3">
+                                            <button onclick="removeStudent('{{ student.student_code }}', '{{ student.full_name }}')" class="btn btn-link text-danger p-0 shadow-none"><i class="bi bi-trash fs-5"></i></button>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -109,86 +104,155 @@
                         </div>
                     </div>
 
-                    <div class="tab-pane fade p-3" id="sessions-pane" role="tabpanel">
+                    <div class="tab-pane fade p-4" id="sessions-pane" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="mb-0 fw-bold text-secondary">Tiến trình lớp học</h6>
-                            <button class="btn btn-primary btn-sm rounded-pill" data-bs-toggle="modal"
-                                data-bs-target="#createSessionModal">
-                                <i class="bi bi-plus-lg"></i> Tạo buổi học mới
+                            <h6 class="mb-0 fw-bold text-secondary"><i class="bi bi-clock-history me-2"></i>Tiến trình lớp học</h6>
+                            <button class="btn btn-primary btn-sm rounded-pill shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#createSessionModal">
+                                <i class="bi bi-plus-lg me-1"></i> Tạo buổi học mới
                             </button>
                         </div>
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle border">
+                            <table class="table table-hover align-middle border rounded overflow-hidden">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Ngày học</th>
-                                        <th>Giờ bắt đầu</th>
-                                        <th>Giờ chốt trễ</th>
+                                        <th class="ps-3">Ngày học</th>
+                                        <th>Bắt đầu</th>
+                                        <th>Chốt trễ</th>
                                         <th>Trạng thái</th>
-                                        <th>Thao tác</th>
+                                        <th class="text-end pe-3">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for session in sessions %}
                                     <tr>
-                                        <td class="fw-bold text-primary">{{ session.date.strftime('%d/%m/%Y') }}</td>
-                                        <td><span class="badge bg-secondary">{{ session.start_time }}</span></td>
-                                        <td><span class="badge bg-warning text-dark">{{ session.late_threshold_time
-                                                }}</span></td>
-                                        <td><span class="badge bg-info">Sắp diễn ra</span></td>
-                                        <td>
-                                            <a href="/sessions/{{ session.id }}/attendance"
-                                                class="btn btn-sm btn-outline-success">Điểm danh <i
-                                                    class="bi bi-camera-video"></i></a>
+                                        <td class="fw-bold text-primary ps-3">{{ session.display_date }}</td>
+                                        <td><span class="badge bg-secondary rounded-pill px-2">{{ session.display_start }}</span></td>
+                                        <td><span class="badge bg-warning text-dark rounded-pill px-2">{{ session.display_late }}</span></td>
+                                        <td><span class="badge {{ session.ui_color }} rounded-pill px-3">{{ session.ui_status }}</span></td>
+                                        <td class="text-end pe-3">
+                                            <a href="/sessions/{{ session.id }}/attendance" class="btn btn-sm btn-outline-success fw-bold rounded-pill">
+                                                <i class="bi bi-camera-video"></i> Điểm danh
+                                            </a>
+                                            <button onclick="openEditSessionModal({{ session.id }})" class="btn btn-sm btn-outline-secondary ms-1 rounded-circle" title="Cài đặt & Điểm danh thủ công">
+                                                <i class="bi bi-gear-fill"></i>
+                                            </button>
+
+                                            {% if not session.is_closed %}
+                                            <button onclick="toggleSession({{ session.id }})" class="btn btn-sm btn-danger ms-1 rounded-pill shadow-sm" title="Khóa buổi học">
+                                                <i class="bi bi-lock-fill"></i> Chốt
+                                            </button>
+                                            {% else %}
+                                            <button onclick="toggleSession({{ session.id }})" class="btn btn-sm btn-warning ms-1 rounded-pill shadow-sm text-dark fw-bold" title="Mở khóa">
+                                                <i class="bi bi-unlock-fill"></i> Mở lại
+                                            </button>
+                                            {% endif %}
                                         </td>
                                     </tr>
                                     {% else %}
                                     <tr>
-                                        <td colspan="5" class="text-center text-muted py-4">Chưa có buổi học nào được
-                                            tạo.</td>
+                                        <td colspan="5" class="text-center text-muted py-5">
+                                            <i class="bi bi-calendar-x fs-1 opacity-25 d-block mb-2"></i>
+                                            Chưa có buổi học nào được tạo.
+                                        </td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 <div class="modal fade" id="createSessionModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title"><i class="bi bi-calendar-plus me-2"></i>Tạo buổi học mới</h5>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white rounded-top-4">
+                <h5 class="modal-title fw-bold"><i class="bi bi-calendar-plus me-2"></i>Tạo buổi học mới</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body p-4">
                 <form id="sessionForm">
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Ngày diễn ra buổi học</label>
-                        <input type="date" id="session_date" class="form-control" required>
+                        <label class="form-label fw-bold text-secondary">Ngày diễn ra buổi học</label>
+                        <input type="date" id="session_date" class="form-control shadow-sm" required>
                     </div>
-                    <div class="row">
+                    <div class="row g-3">
                         <div class="col-6 mb-3">
-                            <label class="form-label fw-bold">Giờ bắt đầu</label>
-                            <input type="time" id="session_start" class="form-control" value="07:00" required>
+                            <label class="form-label fw-bold text-secondary">Giờ bắt đầu</label>
+                            <input type="time" id="session_start" class="form-control shadow-sm" value="07:00" required>
                         </div>
                         <div class="col-6 mb-3">
-                            <label class="form-label fw-bold">Giờ chốt trễ</label>
-                            <input type="time" id="session_late" class="form-control" value="07:15" required>
+                            <label class="form-label fw-bold text-warning text-dark">Giờ chốt trễ</label>
+                            <input type="time" id="session_late" class="form-control shadow-sm" value="07:15" required>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100 fw-bold">Tạo buổi học</button>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold rounded-pill py-2 shadow-sm mt-2">Tạo buổi học</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="editSessionModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-dark text-white rounded-top-4">
+                <h5 class="modal-title fw-bold"><i class="bi bi-gear-fill me-2"></i>Cài đặt buổi học</h5>
+                <button type="button" class="btn-close btn-close-white" onclick="attemptCloseModal()"></button>
+            </div>
+            <div class="modal-body bg-light p-4">
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body row g-3">
+                        <div class="col-md-4">
+                            <label class="small fw-bold text-muted mb-1">Ngày học</label>
+                            <input type="date" id="edit_sess_date" class="form-control" onchange="markDirty()">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="small fw-bold text-muted mb-1">Giờ bắt đầu</label>
+                            <input type="time" id="edit_sess_start" class="form-control" onchange="markDirty()">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="small fw-bold text-muted mb-1">Giờ chốt trễ</label>
+                            <input type="time" id="edit_sess_late" class="form-control" onchange="markDirty()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 rounded-top-4 border-bottom-0">
+                        <h6 class="mb-0 fw-bold text-primary"><i class="bi bi-card-checklist me-2"></i>Điểm danh thủ công</h6>
+                        <input type="text" id="manualSearch" class="form-control form-control-sm w-50 rounded-pill px-3 shadow-none bg-light" placeholder="Nhập >= 2 ký tự để tìm...">
+                    </div>
+                    <div class="table-responsive" style="max-height: 350px;">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th class="ps-3">MSSV</th>
+                                    <th>Họ tên</th>
+                                    <th class="text-end pe-3">Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="manualAttendanceBody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-white border-top-0 rounded-bottom-4 py-3">
+                <button type="button" class="btn btn-light fw-bold rounded-pill px-4" onclick="attemptCloseModal()">Đóng</button>
+                <button type="button" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm" onclick="saveSessionChanges()"><i class="bi bi-save me-1"></i> Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    // --- 1. Lọc bảng danh sách (Local Search) ---
+    // -------------------------------------------------------------
+    // PHẦN 1: QUẢN LÝ TÌM KIẾM & THÊM/XÓA SINH VIÊN VÀO LỚP
+    // -------------------------------------------------------------
     document.getElementById('tableSearch').addEventListener('keyup', function () {
         let filter = this.value.toUpperCase();
         let rows = document.querySelector("#studentTable tbody").rows;
@@ -199,11 +263,9 @@
         }
     });
 
-    // --- 2. Thêm Sinh Viên (Ghi đè ô input) ---
     async function enrollStudent() {
         const code = document.getElementById('add_student_code').value.trim();
         if (!code) return;
-
         const response = await fetch(`/api/courses/{{ course.id }}/enroll`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -217,53 +279,40 @@
         }
     }
 
-    // --- 3. Xóa Sinh Viên ---
     async function removeStudent(studentCode, studentName) {
-        // Hỏi xác nhận trước khi xóa
         if (!confirm(`Bạn có chắc chắn muốn xóa sinh viên ${studentName} (${studentCode}) khỏi lớp này?`)) return;
-
-        const response = await fetch(`/api/courses/{{ course.id }}/students/${studentCode}`, {
-            method: 'DELETE'
-        });
-
-        if (response.ok) {
-            location.reload();
-        } else {
-            alert("Có lỗi xảy ra khi xóa sinh viên!");
-        }
+        const response = await fetch(`/api/courses/{{ course.id }}/students/${studentCode}`, { method: 'DELETE' });
+        if (response.ok) location.reload();
+        else alert("Có lỗi xảy ra khi xóa sinh viên!");
     }
 
-    // --- 4. Gợi ý Autocomplete (Chỉ kích hoạt khi >= 3 ký tự) ---
+    // Autocomplete tìm sinh viên
     const searchInput = document.getElementById('add_student_code');
     const suggestionList = document.getElementById('suggestionList');
 
     searchInput.addEventListener('input', async function () {
         const query = this.value.trim();
         if (query.length >= 3) {
-            // Gọi API tìm kiếm
             const response = await fetch(`/api/users/search?q=${query}`);
             if (response.ok) {
                 const students = await response.json();
                 suggestionList.innerHTML = '';
-
                 if (students.length > 0) {
                     students.forEach(s => {
                         const li = document.createElement('li');
-                        li.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+                        li.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center fw-bold text-muted';
                         li.style.cursor = 'pointer';
-                        li.innerHTML = `<span><strong>${s.student_code}</strong> - ${s.full_name}</span> <i class="bi bi-box-arrow-in-down-right text-muted"></i>`;
-
-                        // Khi click vào 1 người trong list gợi ý
+                        li.innerHTML = `<span class="text-dark">${s.student_code}</span> <span>${s.full_name}</span>`;
                         li.onclick = () => {
-                            searchInput.value = s.student_code; // Điền MSSV vào ô input
-                            suggestionList.style.display = 'none'; // Giấu menu đi
-                            enrollStudent(); // Gọi hàm lưu vào db ngay lập tức
+                            searchInput.value = s.student_code;
+                            suggestionList.style.display = 'none';
+                            enrollStudent();
                         };
                         suggestionList.appendChild(li);
                     });
                     suggestionList.style.display = 'block';
                 } else {
-                    suggestionList.innerHTML = '<li class="list-group-item text-muted">Không tìm thấy sinh viên nào...</li>';
+                    suggestionList.innerHTML = '<li class="list-group-item text-muted">Không tìm thấy...</li>';
                     suggestionList.style.display = 'block';
                 }
             }
@@ -272,34 +321,173 @@
         }
     });
 
-    // Ẩn menu gợi ý khi click ra ngoài vùng tìm kiếm
     document.addEventListener('click', function (e) {
-        if (e.target !== searchInput && e.target !== suggestionList) {
-            suggestionList.style.display = 'none';
-        }
+        if (e.target !== searchInput && e.target !== suggestionList) suggestionList.style.display = 'none';
     });
+
+    // -------------------------------------------------------------
+    // PHẦN 2: TẠO VÀ CHỐT BUỔI HỌC
+    // -------------------------------------------------------------
     document.getElementById('sessionForm').onsubmit = async (e) => {
         e.preventDefault();
-        const date = document.getElementById('session_date').value;
-        const start_time = document.getElementById('session_start').value;
-        const late_threshold_time = document.getElementById('session_late').value;
+        let st = document.getElementById('session_start').value;
+        let lt = document.getElementById('session_late').value;
+        
+        if (st.length === 5) st += ":00";
+        if (lt.length === 5) lt += ":00";
 
         const response = await fetch(`/api/courses/{{ course.id }}/sessions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                date: date,
-                start_time: start_time + ":00", // Bổ sung giây để đúng định dạng Time
-                late_threshold_time: late_threshold_time + ":00"
+                date: document.getElementById('session_date').value,
+                start_time: st,
+                late_threshold_time: lt
             })
         });
-
-        if (response.ok) {
-            // Tải lại trang để hiện buổi học mới trong danh sách
-            location.reload();
-        } else {
-            alert("Có lỗi xảy ra khi tạo buổi học!");
-        }
+        if (response.ok) location.reload();
+        else alert("Có lỗi xảy ra khi tạo buổi học!");
     };
+
+    async function toggleSession(sessionId) {
+        const response = await fetch(`/api/sessions/${sessionId}/toggle-status`, { method: 'POST' });
+        if (response.ok) location.reload();
+        else alert("Có lỗi xảy ra khi cập nhật trạng thái!");
+    }
+
+    // -------------------------------------------------------------
+    // PHẦN 3: MODAL ĐIỂM DANH THỦ CÔNG VÀ CHỈNH SỬA BUỔI HỌC
+    // -------------------------------------------------------------
+    let currentEditingSessionId = null;
+    let isDirty = false; 
+    let globalSessionStudents = []; 
+
+    function markDirty() { isDirty = true; }
+
+    async function openEditSessionModal(sessionId) {
+        currentEditingSessionId = sessionId;
+        isDirty = false; 
+
+        const response = await fetch(`/api/sessions/${sessionId}/details`);
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('edit_sess_date').value = data.date;
+            document.getElementById('edit_sess_start').value = data.start_time;
+            document.getElementById('edit_sess_late').value = data.late_threshold_time;
+
+            globalSessionStudents = data.students;
+            renderManualTable(''); 
+
+            const modal = new bootstrap.Modal(document.getElementById('editSessionModal'));
+            modal.show();
+        } else {
+            alert("Không thể tải dữ liệu buổi học!");
+        }
+    }
+
+    function renderManualTable(filterText) {
+        const tbody = document.getElementById('manualAttendanceBody');
+        tbody.innerHTML = '';
+        let displayStudents = globalSessionStudents;
+
+        if (filterText.length >= 2) {
+            const lowerFilter = filterText.toLowerCase();
+            displayStudents = globalSessionStudents.filter(s =>
+                s.student_code.toLowerCase().includes(lowerFilter) ||
+                s.full_name.toLowerCase().includes(lowerFilter)
+            );
+        }
+
+        displayStudents.forEach(s => {
+            // Đặt màu class cho Select box dựa trên trạng thái
+            let selectClass = "form-select form-select-sm w-auto fw-bold shadow-none ";
+            if(s.status === 'Có mặt') selectClass += "text-success border-success";
+            else if(s.status === 'Đi trễ') selectClass += "text-warning border-warning";
+            else selectClass += "text-danger border-danger";
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="fw-bold ps-3">${s.student_code}</td>
+                <td>${s.full_name}</td>
+                <td class="text-end pe-3">
+                    <select class="${selectClass}" onchange="updateStudentStatus(${s.id}, this)">
+                        <option value="Có mặt" ${s.status === 'Có mặt' ? 'selected' : ''}>Có mặt</option>
+                        <option value="Đi trễ" ${s.status === 'Đi trễ' ? 'selected' : ''}>Đi trễ</option>
+                        <option value="Vắng" ${s.status === 'Vắng' ? 'selected' : ''}>Vắng</option>
+                    </select>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    document.getElementById('manualSearch').addEventListener('input', function (e) {
+        renderManualTable(e.target.value.trim());
+    });
+
+    function updateStudentStatus(studentId, selectElement) {
+        markDirty();
+        const student = globalSessionStudents.find(s => s.id === studentId);
+        if (student) student.status = selectElement.value;
+        
+        // Đổi màu Dropdown ngay lập tức khi Giảng viên chọn
+        selectElement.className = "form-select form-select-sm w-auto fw-bold shadow-none ";
+        if(selectElement.value === 'Có mặt') selectElement.classList.add("text-success", "border-success");
+        else if(selectElement.value === 'Đi trễ') selectElement.classList.add("text-warning", "border-warning");
+        else selectElement.classList.add("text-danger", "border-danger");
+    }
+
+    async function saveSessionChanges() {
+        let dt = document.getElementById('edit_sess_date').value;
+        let st = document.getElementById('edit_sess_start').value;
+        let lt = document.getElementById('edit_sess_late').value;
+
+        if (!dt || !st || !lt) {
+            alert("Vui lòng điền đầy đủ Ngày và Giờ!");
+            return;
+        }
+        if (st.length === 5) st += ":00";
+        if (lt.length === 5) lt += ":00";
+
+        const payload = {
+            date: dt,
+            start_time: st,
+            late_threshold_time: lt,
+            attendance: globalSessionStudents.map(s => ({ student_id: s.id, status: s.status }))
+        };
+
+        try {
+            const response = await fetch(`/api/sessions/${currentEditingSessionId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                isDirty = false;
+                location.reload();
+            } else {
+                // Trích xuất lỗi thực sự từ Backend để dễ sửa
+                const errorData = await response.json();
+                alert("Lỗi từ máy chủ: \n" + JSON.stringify(errorData.detail || errorData));
+            }
+        } catch (err) {
+            alert("Lỗi kết nối: " + err);
+        }
+    }
+
+    function attemptCloseModal() {
+        if (isDirty) {
+            const confirmSave = confirm("Bạn đã thay đổi thông tin nhưng CHƯA LƯU. Bạn có muốn LƯU lại không?");
+            if (confirmSave) {
+                saveSessionChanges();
+                return;
+            }
+        }
+        const modalEl = document.getElementById('editSessionModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+        isDirty = false;
+    }
 </script>
 {% endblock %}

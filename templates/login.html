@@ -24,7 +24,9 @@
                         <p class="text-muted">Đăng nhập để vào hệ thống</p>
                     </div>
 
-                    <form action="/api/login" method="post">
+                    <div id="alert-box" class="alert d-none text-center fw-bold shadow-sm" role="alert"></div>
+
+                    <form id="login-form">
                         <div class="mb-3">
                             <label class="form-label fw-bold">MSSV hoặc Email</label>
                             <input type="text" name="username" class="form-control py-2" placeholder="Nhập mã sinh viên hoặc email trường" required>
@@ -47,5 +49,41 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.getElementById("login-form").addEventListener("submit", async (e) => {
+            e.preventDefault(); // Ngăn trình duyệt tự tải lại trang
+            
+            const form = e.target;
+            const formData = new FormData(form);
+            const alertBox = document.getElementById("alert-box");
+
+            try {
+                // Gửi request lên API
+                // Lưu ý: OAuth2PasswordRequestForm của FastAPI yêu cầu định dạng x-www-form-urlencoded
+                const response = await fetch("/api/login", {
+                    method: "POST",
+                    body: new URLSearchParams(formData), 
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    }
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (!response.ok) {
+                    const data = await response.json();
+                    alertBox.classList.remove("d-none");
+                    alertBox.classList.add("alert-danger");
+                    
+                    alertBox.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i> ${data.detail || "Thông tin không chính xác!"}`;
+                }
+            } catch (error) {
+                alertBox.classList.remove("d-none");
+                alertBox.classList.add("alert-danger");
+                alertBox.innerText = "Lỗi kết nối đến máy chủ!";
+            }
+        });
+    </script>
 </body>
 </html>

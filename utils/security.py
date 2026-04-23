@@ -9,7 +9,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # Khóa bí mật dùng để ký JWT (Trong thực tế nên lưu ở file .env)
 SECRET_KEY = "XanhPHP_52400056_52400247_TDTU_2026" 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 # Token hết hạn sau 60 phút
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # Token hết hạn sau 1 ngày
 
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)

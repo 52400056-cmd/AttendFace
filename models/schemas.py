@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum, JSON, Time, Table, Date
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum, JSON, Time, Table, Date, Boolean
 from sqlalchemy.orm import declarative_base, relationship
 from pgvector.sqlalchemy import Vector
 import enum
@@ -45,8 +45,8 @@ class Course(Base):
     teacher_id = Column(Integer, ForeignKey("users.id"))
     
     # CÁC TRƯỜNG MỚI THÊM
-    total_sessions = Column(Integer, default=15) # Tổng số buổi (VD: 15 buổi)
-    absence_limit = Column(Integer, default=3)   # Số buổi tối đa được nghỉ (VD: 3)
+    total_sessions = Column(Integer, default=15)
+    absence_limit = Column(Integer, default=3)   
     
     teacher = relationship("User", back_populates="managed_courses")
     students = relationship("User", secondary=enrollments, back_populates="courses_enrolled")
@@ -61,6 +61,8 @@ class Session(Base):
     date = Column(DateTime, nullable=False) 
     start_time = Column(Time, nullable=False) 
     late_threshold_time = Column(Time, nullable=False) 
+    
+    is_closed = Column(Boolean, default=False) 
     
     course = relationship("Course", back_populates="sessions")
     records = relationship("AttendanceRecord", back_populates="session")
