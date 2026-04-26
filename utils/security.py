@@ -6,10 +6,9 @@ from sqlalchemy.orm import Session
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Khóa bí mật dùng để ký JWT (Trong thực tế nên lưu ở file .env)
 SECRET_KEY = "XanhPHP_52400056_52400247_TDTU_2026" 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # Token hết hạn sau 1 ngày
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
@@ -30,11 +29,9 @@ def get_current_user(request: Request, db: Session):
     if not token:
         return None
     try:
-        # Loại bỏ tiền tố 'Bearer '
         token = token.replace("Bearer ", "")
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("user_id")
-        # Tìm user trong DB (sử dụng db_connect)
         from models.schemas import User
         return db.query(User).filter(User.id == user_id).first()
     except:
