@@ -20,7 +20,8 @@ enrollments = Table(
     "enrollments",
     Base.metadata,
     Column("student_id", Integer, ForeignKey("users.id"), primary_key=True),
-    Column("course_id", Integer, ForeignKey("courses.id"), primary_key=True)
+    Column("course_id", Integer, ForeignKey("courses.id"), primary_key=True),
+    Column("is_banned", Boolean, default=False)
 )
 
 class User(Base):
@@ -32,9 +33,9 @@ class User(Base):
     role = Column(String(20)) # 'admin', 'teacher', 'student'
     date_of_birth = Column(Date, nullable=True) # Ngày sinh
     student_code = Column(String(20), unique=True, nullable=True) # Ví dụ: 52400056
-    face_embedding = Column(JSON, nullable=True)
+    face_embedding = Column(Vector(1280), nullable=True)
     url_pic = Column(String(255), nullable=True)
-    # Mối quan hệ
+
     courses_enrolled = relationship("Course", secondary=enrollments, back_populates="students")
     attendance_records = relationship("AttendanceRecord", back_populates="student")
 

@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb bg-white p-3 rounded-3 shadow-sm mb-0">
+        <li class="breadcrumb-item"><a href="/" class="text-decoration-none fw-bold"><i
+                    class="bi bi-journal-bookmark-fill me-1"></i>Lớp học</a></li>
+        <li class="breadcrumb-item active fw-bold text-primary">Điểm danh ngày {{ session.display_date }}</li>
+    </ol>
+</nav>
+
+<div class="card shadow-sm border-0 rounded-4 mb-4">
+    <div class="card-header bg-white pt-4 pb-3 border-0 rounded-top-4 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold text-primary mb-0"><i class="bi bi-list-check me-2"></i>Bảng danh sách</h5>
+
+        <div>
+            <button onclick="finalizeAttendance()" class="btn btn-success rounded-pill shadow-sm px-4 fw-bold me-2">
+                <i class="bi bi-check2-all me-1"></i>Kết thúc
+            </button>
+            <button onclick="openCameraWindow()" class="btn btn-dark rounded-pill shadow-sm px-4 fw-bold">
+                <i class="bi bi-display me-2"></i>Mở camera điểm danh
+            </button>
+        </div>
+    </div>
+    
+    <div class="card-body p-0">
+        <div class="table-responsive" style="max-height: 600px;">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light sticky-top">
+                    <tr>
+                        <th class="ps-4">MSSV</th>
+                        <th>Họ Tên</th>
+                        <th class="text-end pe-4">Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody id="live-attendance-list">
+                    {% for student in students %}
+                    <tr id="row-{{ student.student_code }}" class="transition-row">
+                        <td class="fw-bold ps-4">{{ student.student_code }}</td>
+                        <td>{{ student.full_name }}</td>
+                        <td class="text-end pe-4" id="status-{{ student.student_code }}">
+                            {% if student.status == 'Có mặt' %}
+                                <span class="badge bg-success rounded-pill px-3 py-2 shadow-sm"><i class="bi bi-check-circle me-1"></i>Có mặt</span>
+                            {% elif student.status == 'Đi trễ' %}
+                                <span class="badge bg-warning text-dark rounded-pill px-3 py-2 shadow-sm"><i class="bi bi-clock-history me-1"></i>Đi trễ</span>
+                            {% elif student.status == 'Vắng' %}
+                                <span class="badge bg-danger rounded-pill px-3 py-2 shadow-sm"><i class="bi bi-x-circle me-1"></i>Vắng</span>
+                            {% else %}
+                                <span class="badge bg-secondary rounded-pill px-3 py-2 opacity-75">Chưa điểm danh</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="bannedListModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold text-danger"><i class="bi bi-shield-slash me-2"></i>Bảng kiểm tra cấm thi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-4">Danh sách sinh viên</p>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>MSSV</th>
+                                <th>Họ Tên</th>
+                                <th class="text-center">Số buổi vắng</th>
+                                <th class="text-end">Cấm thi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="banned-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary rounded-pill px-4"
+                    data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4" onclick="saveBannedStatus()">Lưu
+                    thay đổi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .transition-row { transition: background-color 0.5s ease; }
+    .highlight-success { background-color: #d1e7dd !important; }
+</style>
+
+<script>
+    let currentClassData = [];
+
+    async function finalizeAttendance() {
+        if (!confirm("Xác nhận kết thúc điểm danh")) return;
+
+        try {
+            const response = await fetch(`/api/sessions/{{ session.id }}/finalize`, { method: 'POST' });
+            const data = await response.json();
+
+            if (response.ok) {
+                currentClassData = data.students;
+                const bannedCount = data.students.filter(s => s.is_banned).length;
+
+                if (bannedCount > 0) {
+                    alert(`Đã chốt thành công! Phát hiện ${bannedCount} sinh viên vượt quá buổi nghỉ tối đa. Kiểm tra!`);
+                    showBannedTable(); 
+                } else {
+                    alert("Không có sinh viên bị cấm thi.");
+                    window.location.href = `/courses/{{ session.course_id }}`; 
+                }
+
+            } else {
+                alert("Lỗi: " + (data.detail || "Không thể kết thúc điểm danh"));
+            }
+        } catch (e) {
+            alert("Lỗi kết nối máy chủ: " + e);
+        }
+    }
+
+    function showBannedTable() {
+        const body = document.getElementById('banned-table-body');
+        const limitEl = document.getElementById('modal-limit');
+
+        limitEl.innerText = "{{ session.course.absence_limit }}";
+        body.innerHTML = '';
+
+        currentClassData.forEach(st => {
+            const row = `
+                <tr>
+                    <td>${st.code}</td>
+                    <td>${st.name}</td>
+                    <td class="text-center fw-bold ${st.is_banned ? 'text-danger' : ''}">${st.absent_count}</td>
+                    <td class="text-end">
+                        <div class="form-check form-switch d-inline-block">
+                            <input class="form-check-input" type="checkbox" ${st.is_banned ? 'checked' : ''} 
+                                   onchange="toggleBannedLocal('${st.code}', this.checked)">
+                        </div>
+                    </td>
+                </tr>
+            `;
+            body.innerHTML += row;
+        });
+
+        const modal = new bootstrap.Modal(document.getElementById('bannedListModal'));
+        modal.show();
+    }
+
+    function toggleBannedLocal(code, isChecked) {
+        const student = currentClassData.find(s => s.code === code);
+        if (student) student.is_banned = isChecked;
+    }
+
+    function saveBannedStatus() {
+        alert("Đã cập nhật cấm thi cho lớp học.");
+        window.location.href = `/courses/{{ session.course_id }}`;
+    }
+
+    function openCameraWindow() {
+        const url = `/sessions/{{ session.id }}/camera`;
+        window.open(url, 'KioskWindow', 'width=1000,height=800,menubar=no,toolbar=no,location=no,status=no');
+    }
+
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${protocol}//${window.location.host}/ws/attendance/{{ session.id }}`);
+
+    ws.onopen = () => {
+        setInterval(() => { if (ws.readyState === WebSocket.OPEN) ws.send("ping"); }, 30000);
+    };
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.status === "success") {
+            const statusCell = document.getElementById(`status-${data.student_code}`);
+            if (statusCell) {
+                statusCell.innerHTML = '<span class="badge bg-success rounded-pill px-3 py-2 shadow-sm"><i class="bi bi-check-circle me-1"></i>Có mặt</span>';
+                const row = document.getElementById(`row-${data.student_code}`);
+                row.classList.add("highlight-success");
+                setTimeout(() => row.classList.remove("highlight-success"), 3000);
+            }
+        }
+    };
+</script>
+{% endblock %}

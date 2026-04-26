@@ -1,18 +1,32 @@
 version: '3.8'
 
 services:
+  # 1. DATABASE POSTGRESQL + PGVECTOR
   db:
-    image: pgvector/pgvector:pg16
-    container_name: diemdanh
+    image: ankane/pgvector:latest
+    container_name: faceattend_db
     restart: always
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: CSDLdiemdanh
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456  # Đổi lại cho khớp với mật khẩu bạn đang dùng
+      POSTGRES_DB: faceattend_db
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. BACKEND FASTAPI + AI
+  web:
+    build: .
+    container_name: faceattend_web
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    volumes:
+      - .:/app  # Đồng bộ code: Sửa code bên ngoài là trong Docker tự nhận (hot-reload)
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 volumes:
-  pgdata:
+  postgres_data:

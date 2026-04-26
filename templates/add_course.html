@@ -20,7 +20,7 @@
                     <input type="number" id="c_total" class="form-control" value="15">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Số buổi nghỉ tối đa (Cấm thi)</label>
+                    <label class="form-label fw-bold">Số buổi nghỉ tối đa</label>
                     <input type="number" id="c_limit" class="form-control" value="3">
                 </div>
                 <div class="col-12">
@@ -76,7 +76,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Danh sách cán bộ / Giảng viên</h5>
+                <h5 class="modal-title">Danh sách Giảng viên</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -109,7 +109,6 @@
 <script>
     let currentCourseId = null;
 
-    // --- XỬ LÝ MODAL GIẢNG VIÊN ---
     async function loadTeachers() {
         const response = await fetch('/api/users/staff');
         const teachers = await response.json();
@@ -135,7 +134,6 @@
         bootstrap.Modal.getInstance(document.getElementById('teacherModal')).hide();
     }
 
-    // --- LƯU BƯỚC 1 ---
     async function saveStep1() {
         const name = document.getElementById('c_name').value;
         const teacher_id = document.getElementById('selected_teacher_id').value;
@@ -154,7 +152,6 @@
         const data = await response.json();
         currentCourseId = data.course_id;
 
-        // Chuyển bước
         document.getElementById('step-1-container').style.display = 'none';
         document.getElementById('step-2-container').style.display = 'block';
         document.getElementById('step-1-indicator').className = 'px-4 py-2 text-muted fw-bold';
@@ -162,7 +159,6 @@
         loadAllStudents();
     }
 
-    // --- XỬ LÝ SINH VIÊN (STEP 2) ---
     async function loadAllStudents() {
         const response = await fetch('/api/users/students');
         const students = await response.json();
@@ -189,7 +185,6 @@
             body: JSON.stringify({ student_code: code })
         });
         if (response.ok) {
-            // Tự động điền vào bảng bên phải
             const enrolledTbody = document.getElementById('enrolledTable');
             enrolledTbody.innerHTML += `<tr><td>${code}</td><td>${name}</td></tr>`;
             const count = document.getElementById('count_enroll');
@@ -197,7 +192,6 @@
         }
     }
 
-    // Khởi tạo Modal
     document.addEventListener('DOMContentLoaded', loadTeachers);
 </script>
 {% endblock %}

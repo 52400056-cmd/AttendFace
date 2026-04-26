@@ -4,7 +4,7 @@ from models.schemas import Base
 
 class db_connect:
     def __init__(self):
-        self.DATABASE_URL = "postgresql+psycopg2://admin:admin@localhost:5432/CSDLdiemdanh"
+        self.DATABASE_URL = "postgresql://postgres:123456@db:5432/faceattend_db"
         
         self.engine = create_engine(self.DATABASE_URL)
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)

@@ -28,13 +28,13 @@
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <div class="card reg-card p-4">
-                    <h3 class="fw-bold text-center text-primary mb-4">Đăng ký Thành viên</h3>
+                    <h3 class="fw-bold text-center text-primary mb-4">Đăng ký</h3>
 
                     <form id="reg-form">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Mã sinh viên</label>
-                                <input type="text" id="student_code" class="form-control" placeholder="VD: 52400056"
+                                <input type="text" id="student_code" class="form-control" placeholder="VD: 524000**"
                                     required>
                             </div>
                             <div class="col-md-6 mb-3">
@@ -69,22 +69,19 @@
 
     <script>
         document.getElementById('reg-form').onsubmit = async (e) => {
-            e.preventDefault(); // Ngăn trình duyệt tự động tải lại trang
+            e.preventDefault(); 
 
-            // 1. Lấy dữ liệu từ các ô nhập liệu
             const student_code = document.getElementById("student_code").value;
             const full_name = document.getElementById("full_name").value;
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
             const confirm_password = document.getElementById("confirm_password").value;
 
-            // 2. Kiểm tra mật khẩu khớp nhau
             if (password !== confirm_password) {
                 alert("Mật khẩu xác nhận không khớp. Vui lòng kiểm tra lại!");
                 return;
             }
 
-            // 3. Gửi yêu cầu đăng ký lên API
             const response = await fetch("/api/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -97,14 +94,11 @@
                 })
             });
 
-            // 4. Xử lý kết quả trả về
             if (response.ok) {
                 alert("Đăng ký thành công! Hệ thống sẽ chuyển về trang đăng nhập.");
 
-                // Lệnh chuyển hướng về trang login
                 window.location.href = "/login";
             } else {
-                // Hiển thị lỗi từ backend (ví dụ: Trùng MSSV hoặc Email)
                 const data = await response.json();
                 alert(data.detail || "Có lỗi xảy ra khi đăng ký!");
             }

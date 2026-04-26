@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb bg-white p-3 rounded-3 shadow-sm">
+        <li class="breadcrumb-item"><a href="/courses" class="text-decoration-none fw-bold"><i class="bi bi-journal-bookmark-fill me-1"></i>Lớp học của tôi</a></li>
+        <li class="breadcrumb-item active fw-bold text-primary">{{ course.name }}</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <div class="col-lg-4 col-md-5">
+        <div class="card shadow-sm border-0 rounded-4 mb-4">
+            <div class="card-body text-center p-4">
+                <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                    <i class="bi bi-person-badge fs-1 text-primary"></i>
+                </div>
+                <h5 class="fw-bold mb-1">{{ user.full_name }}</h5>
+                <p class="text-muted small mb-0">MSSV: {{ user.student_code }}</p>
+                <hr>
+                <div class="d-flex justify-content-between text-start mb-2">
+                    <span class="text-muted fw-bold">Tổng số buổi:</span>
+                    <span class="fw-bold">{{ course.total_sessions }}</span>
+                </div>
+                <div class="d-flex justify-content-between text-start mb-2">
+                    <span class="text-muted fw-bold">Giới hạn vắng:</span>
+                    <span class="fw-bold text-warning">{{ course.absence_limit }} buổi</span>
+                </div>
+                <div class="d-flex justify-content-between text-start">
+                    <span class="text-muted fw-bold">Số buổi đã vắng:</span>
+                    <span class="fw-bold {% if absent_count >= course.absence_limit %}text-danger{% else %}text-danger{% endif %} fs-5">{{ absent_count }}</span>
+                </div>
+                
+                {% if absent_count >= course.absence_limit %}
+                <div class="alert alert-danger mt-3 mb-0 text-start small fw-bold">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Bạn đã chạm/vượt ngưỡng cấm thi!
+                </div>
+                {% elif absent_count == course.absence_limit - 1 %}
+                <div class="alert alert-warning mt-3 mb-0 text-start small fw-bold">
+                    <i class="bi bi-exclamation-circle-fill me-1"></i> Chú ý: Bạn chỉ còn được vắng 1 buổi nữa!
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8 col-md-7">
+        <div class="card shadow-sm border-0 rounded-4 h-100">
+            <div class="card-header bg-white pt-4 pb-3 border-0 rounded-top-4">
+                <h5 class="fw-bold text-primary mb-0"><i class="bi bi-clock-history me-2"></i>Lịch sử tham gia lớp học</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Ngày học</th>
+                                <th>Giờ bắt đầu</th>
+                                <th class="text-end pe-4">Trạng thái của bạn</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in history %}
+                            <tr>
+                                <td class="fw-bold ps-4 text-secondary">{{ record.date }}</td>
+                                <td>{{ record.start_time }}</td>
+                                <td class="text-end pe-4">
+                                    <span class="badge {{ record.color }} rounded-pill px-3 py-2 shadow-sm">{{ record.status }}</span>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-5">
+                                    <i class="bi bi-calendar-x fs-1 opacity-25 d-block mb-2"></i>
+                                    Lớp học này chưa có buổi học nào diễn ra.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

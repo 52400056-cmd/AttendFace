@@ -52,29 +52,58 @@
         </div>
 
         {% if user.role == 'student' %}
-        <div class="card shadow-sm mt-4">
-            <div class="card-header bg-white">
-                <h5 class="mb-0">Lịch sử điểm danh gần đây</h5>
+        <div class="card shadow-sm border-0 rounded-4 mt-4">
+            <div class="card-header bg-white border-0 pt-4 pb-0">
+                <h5 class="fw-bold text-primary mb-0"><i class="bi bi-clock-history me-2"></i>Lịch sử điểm danh 
+                </h5>
             </div>
-            <div class="card-body">
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Ngày</th>
-                            <th>Môn học</th>
-                            <th>Trạng thái</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for record in user.attendance_records[:5] %}
-                        <tr>
-                            <td>{{ record.check_in_time.strftime('%d/%m/%Y') }}</td>
-                            <td>{{ record.session.course.name }}</td>
-                            <td>{{ record.status }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="card-body p-0 mt-3">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Ngày </th>
+                                <th>Môn học</th>
+                                <th class="text-end pe-4">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in user.attendance_records[:5] %}
+                            <tr>
+                                <td class="fw-bold text-secondary ps-4">
+                                    {% if record.check_in_time %}
+                                    {{ record.check_in_time.strftime('%d/%m/%Y - %H:%M') }}
+                                    {% else %}
+                                    Không ghi nhận giờ
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold text-dark">{{ record.session.course.name }}</td>
+                                <td class="text-end pe-4">
+                                    {% set status_str = record.status | string | upper %}
+
+                                    {% if 'PRESENT' in status_str or 'CÓ MẶT' in status_str %}
+                                    <span class="badge bg-success rounded-pill px-3 py-2 shadow-sm"><i
+                                            class="bi bi-check-circle me-1"></i>Có mặt</span>
+                                    {% elif 'LATE' in status_str or 'ĐI TRỄ' in status_str %}
+                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2 shadow-sm"><i
+                                            class="bi bi-clock-history me-1"></i>Đi trễ</span>
+                                    {% else %}
+                                    <span class="badge bg-danger rounded-pill px-3 py-2 shadow-sm"><i
+                                            class="bi bi-x-circle me-1"></i>Vắng</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-5">
+                                    <i class="bi bi-calendar-x fs-1 opacity-25 d-block mb-3"></i>
+                                    Bạn chưa có dữ liệu điểm danh nào.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
         {% endif %}

@@ -1,50 +1,119 @@
 {% extends "base.html" %}
 
-{% block title %}Bảng điều khiển - Hệ thống FaceAttend{% endblock %}
+{% block title %}Trang chủ - FaceAttend{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-12 mb-4">
-        <h2 class="text-primary">Chào mừng quay trở lại!</h2>
-        <p class="text-muted">Hệ thống điểm danh bằng khuôn mặt - Dự án nghiên cứu học thuật.</p>
-    </div>
-</div>
-
-<div class="row text-center">
-    <div class="col-md-4 mb-3">
-        <div class="card border-primary shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title text-primary">Lớp học</h5>
-                <h2 class="display-4">05</h2>
-                <p class="card-text">Đang hoạt động</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 mb-3">
-        <div class="card border-success shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title text-success">Sinh viên</h5>
-                <h2 class="display-4">120</h2>
-                <p class="card-text">Đã đăng ký khuôn mặt</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 mb-3">
-        <div class="card border-info shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title text-info">Buổi học</h5>
-                <h2 class="display-4">08</h2>
-                <p class="card-text">Diễn ra hôm nay</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row mt-4">
+<div class="row mb-4">
     <div class="col-md-12">
-        <div class="alert alert-info border-0 shadow-sm">
-            <strong>Gợi ý:</strong> Bạn có thể bắt đầu điểm danh ngay bằng cách chọn lớp học trong danh sách quản lý.
-        </div>
+        <h2 class="text-primary fw-bold">Xin chào, {{ user.full_name }}!</h2>
+        <p class="text-muted">Hệ thống điểm danh bằng khuôn mặt (FaceID).</p>
     </div>
 </div>
+
+{% if user.role in ['admin', 'teacher'] %}
+    <div class="row text-center mb-5">
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-primary bg-opacity-10">
+                <div class="card-body py-4">
+                    <h6 class="card-title text-primary fw-bold text-uppercase">Lớp học quản lý</h6>
+                    <h1 class="display-5 fw-bold text-primary mb-0">{{ total_courses }}</h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-success bg-opacity-10">
+                <div class="card-body py-4">
+                    <h6 class="card-title text-success fw-bold text-uppercase">Tổng sinh viên</h6>
+                    <h1 class="display-5 fw-bold text-success mb-0">{{ total_students }}</h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-info bg-opacity-10">
+                <div class="card-body py-4">
+                    <h6 class="card-title text-info fw-bold text-uppercase">Tổng buổi học</h6>
+                    <h1 class="display-5 fw-bold text-info mb-0">{{ total_sessions }}</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="text-secondary fw-bold mb-0"><i class="bi bi-journal-bookmark-fill me-2"></i>Danh sách lớp học</h4>
+        {% if user.role == 'admin' %}
+        <a href="/add-course" class="btn btn-primary rounded-pill shadow-sm fw-bold">
+            <i class="bi bi-plus-lg me-1"></i> Tạo lớp mới
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="row g-4">
+        {% for course in courses %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden text-decoration-none">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-book fs-4"></i>
+                        </div>
+                        <span class="badge bg-light text-dark border rounded-pill px-3 py-2"><i class="bi bi-people-fill me-1"></i> {{ course.students|length }} SV</span>
+                    </div>
+                    <h5 class="fw-bold text-dark text-truncate">{{ course.name }}</h5>
+                    <p class="text-muted small mb-4">Mã lớp: #{{ course.id }} • {{ course.total_sessions }} Buổi học</p>
+                    <a href="/courses/{{ course.id }}" class="btn btn-outline-primary w-100 rounded-pill fw-bold shadow-sm">
+                        Quản lý lớp học <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-journal-x fs-1 text-muted opacity-50 mb-3 d-block"></i>
+            <h5 class="text-muted">Bạn chưa được phân công quản lý lớp học nào.</h5>
+        </div>
+        {% endfor %}
+    </div>
+
+{% else %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="text-secondary fw-bold mb-0"><i class="bi bi-backpack-fill me-2"></i>Các lớp đang tham gia</h4>
+    </div>
+
+    <div class="row g-4">
+        {% for course in courses %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 position-relative overflow-hidden">
+                <div class="position-absolute top-0 start-0 w-100 bg-success" style="height: 5px;"></div>
+                
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-dark mb-2">{{ course.name }}</h5>
+                    <p class="text-muted small mb-3">Giảng viên: {{ course.teacher.full_name }}</p>
+                    
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <div class="small fw-bold text-secondary">
+                            <i class="bi bi-calendar3 me-1"></i> {{ course.total_sessions }} Buổi
+                        </div>
+                        <div class="small fw-bold text-warning text-dark">
+                            <i class="bi bi-exclamation-triangle me-1"></i> Vắng tối đa: {{ course.absence_limit }}
+                        </div>
+                    </div>
+
+                    <a href="/courses/{{ course.id }}" class="btn btn-success w-100 rounded-pill fw-bold shadow-sm bg-opacity-10">
+                        <i class="bi bi-clock-history me-1"></i> Xem lịch sử điểm danh
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px;">
+                <i class="bi bi-emoji-frown fs-1 text-muted"></i>
+            </div>
+            <h5 class="text-muted">Bạn chưa có tên trong danh sách lớp học nào.</h5>
+            <p class="text-secondary small">Vui lòng liên hệ giảng viên bộ môn để được thêm vào lớp.</p>
+        </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
 {% endblock %}

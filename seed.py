@@ -6,28 +6,23 @@ from utils.security import get_password_hash
 from sqlalchemy.orm import Session
 
 def seed_data():
-    # 1. Khởi tạo kết nối
     db_instance = db_connect()
     db: Session = next(db_instance.get_session())
     
-    # 2. Danh sách 10 tên sinh viên khác nhau
     full_names = [
         "Nguyễn Văn An", "Lê Thị Bình", "Trần Minh Cường", "Phạm Hoàng Dung",
         "Hoàng Anh Tuấn", "Đặng Thu Thảo", "Bùi Tiến Dũng", "Ngô Thanh Vân",
         "Đỗ Hùng Dũng", "Võ Minh Thuận"
     ]
-    
-    # 3. Mật khẩu mặc định băm bằng bcrypt
+
     hashed_pw = get_password_hash("123456")
     
     print("Đang tạo dữ liệu sinh viên...")
     
     for i in range(10):
-        # Tạo mã sinh viên ngẫu nhiên 5240xxxx
         random_suffix = random.randint(1000, 9999)
         st_code = f"5240{random_suffix}"
         
-        # Kiểm tra trùng MSSV trước khi thêm (đảm bảo tính Unique của DB)
         if db.query(User).filter(User.student_code == st_code).first():
             continue
 
@@ -45,10 +40,10 @@ def seed_data():
     
     try:
         db.commit()
-        print("✅ Đã tạo thành công 10 sinh viên mẫu!")
+        print("Đã tạo thành công 10 sinh viên mẫu!")
     except Exception as e:
         db.rollback()
-        print(f"❌ Lỗi khi chèn dữ liệu: {e}")
+        print(f"Lỗi khi chèn dữ liệu: {e}")
     finally:
         db.close()
 def seed_staff():
@@ -61,27 +56,33 @@ def seed_staff():
         User(
             full_name="Quản Trị Viên",
             email="admin@tdtu.edu.vn",
-            student_code="admin", # Dùng làm tài khoản đăng nhập
+            student_code="admin", 
             hashed_password=get_password_hash("admin"),
             role="admin"
         ),
         User(
             full_name="Giảng viên Khoa CNTT",
             email="teacher@tdtu.edu.vn",
-            student_code="GV001", # Dùng làm tài khoản đăng nhập
+            student_code="GV001", 
             hashed_password=get_password_hash("GV001"),
             role="teacher"
+        ),
+        User(
+            full_name="Chu Đức Thành Nhân",
+            email="52400056@student.tdtu.edu.vn",
+            student_code="52400056", 
+            hashed_password=get_password_hash("52400056"),
+            role="student"
         )
     ]
     
     try:
-        # Kiểm tra xem tài khoản đã tồn tại chưa để tránh lỗi trùng lặp
         if not db.query(User).filter(User.student_code == "admin").first():
             db.add_all(staff_data)
             db.commit()
-            print("✅ Đã tạo tài khoản Admin và Teacher thành công!")
+            print("Đã tạo tài khoản Admin và Teacher thành công!")
         else:
-            print("⚠️ Tài khoản đã tồn tại trong Database.")
+            print("Tài khoản đã tồn tại trong Database.")
     except Exception as e:
         db.rollback()
         print(f"❌ Lỗi: {e}")
